@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>SMTP Configuration</h3>
+<form method="post">
+  <div class="mb-3">
+    <label class="form-label">SMTP Server</label>
+    <input class="form-control" name="smtp_server" value="{{ smtp.smtp_server or '' }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Port</label>
+    <input type="number" class="form-control" name="smtp_port" value="{{ smtp.smtp_port }}" required>
+  </div>
+  <div class="mb-3 form-check">
+    <input type="checkbox" class="form-check-input" name="use_tls" {% if smtp.use_tls %}checked{% endif %}>
+    <label class="form-check-label">Use TLS</label>
+  </div>
+  <div class="mb-3 form-check">
+    <input type="checkbox" class="form-check-input" name="use_ssl" {% if smtp.use_ssl %}checked{% endif %}>
+    <label class="form-check-label">Use SSL</label>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Username</label>
+    <input class="form-control" name="username" value="{{ smtp.username or '' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" class="form-control" name="password" value="{{ smtp.password or '' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">From Address</label>
+    <input class="form-control" name="from_address" value="{{ smtp.from_address or '' }}" required>
+  </div>
+  <hr>
+  <h5>Test SMS via gateway</h5>
+  <div class="mb-3">
+    <label class="form-label">Phone number (raw)</label>
+    <input class="form-control" id="test_phone" placeholder="e.g. 70123456 or 03123456">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Message</label>
+    <input class="form-control" id="test_message" value="Your Radiology appointment is confirmed on 01-01-2026 at 10:00">
+  </div>
+  <div class="mb-3">
+    <button type="button" id="send_test_sms" class="btn btn-outline-primary">Send Test SMS</button>
+    <span id="test_sms_result" class="ms-3"></span>
+  </div>
+    <script>
+      document.getElementById('send_test_sms').addEventListener('click', function(){
+        var phone = document.getElementById('test_phone').value;
+        var message = document.getElementById('test_message').value;
+        var data = new FormData();
+        data.append('phone', phone);
+        data.append('message', message);
+        fetch('/api/test_sms', {method:'POST', body: data}).then(r=>r.json()).then(j=>{
+          var el = document.getElementById('test_sms_result');
+          el.textContent = j.msg;
+          el.className = j.success ? 'text-success ms-3' : 'text-danger ms-3';
+        }).catch(e=>{var el=document.getElementById('test_sms_result'); el.textContent=e; el.className='text-danger ms-3';});
+      });
+    </script>
+  <button class="btn btn-primary">Save</button>
+</form>
+{% endblock %}

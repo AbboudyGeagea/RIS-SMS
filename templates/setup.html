@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Initial Setup</h3>
+<form method="post">
+  <div class="mb-3">
+    <label class="form-label">Oracle User</label>
+    <input class="form-control" name="ORACLE_USER" value="{{ existing.ORACLE_USER or '' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Oracle Password</label>
+    <input type="password" class="form-control" name="ORACLE_PASSWORD" value="{{ existing.ORACLE_PASSWORD or '' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Oracle DSN</label>
+    <input class="form-control" name="ORACLE_DSN" value="{{ existing.ORACLE_DSN or '' }}">
+  </div>
+  <div class="mb-3">
+    <button type="button" id="test_oracle_btn" class="btn btn-outline-secondary">Test Oracle Connection</button>
+    <span id="test_oracle_result" class="ms-3"></span>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Oracle Timezone</label>
+    <input class="form-control" name="ORACLE_TIMEZONE" value="{{ existing.ORACLE_TIMEZONE or 'Asia/Beirut' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Email Gateway Domain</label>
+    <input class="form-control" name="EMAIL_GATEWAY_DOMAIN" value="{{ existing.EMAIL_GATEWAY_DOMAIN or 'broadnetsms.com' }}">
+  </div>
+  <div class="mb-3">
+    <button type="button" id="test_smtp_btn" class="btn btn-outline-secondary">Test SMTP Connection</button>
+    <span id="test_smtp_result" class="ms-3"></span>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Hospital Name</label>
+    <input class="form-control" name="HOSPITAL_NAME" value="{{ existing.HOSPITAL_NAME or 'LAUMC' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Secret Key</label>
+    <input class="form-control" name="SECRET_KEY" value="{{ existing.SECRET_KEY or '' }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Admin password (will replace default admin)</label>
+    <input type="password" class="form-control" name="ADMIN_PASSWORD" placeholder="leave blank to keep default">
+  </div>
+  <div class="mb-3 form-check">
+    <input class="form-check-input" type="checkbox" name="create_task" id="create_task">
+    <label class="form-check-label" for="create_task">Create Windows scheduled task (requires admin)</label>
+  </div>
+  <input type="hidden" id="confirm_task" name="confirm_task" value="">
+  <button class="btn btn-primary">Save & Initialize</button>
+</form>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Scheduled Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Do you want the application to create a Windows scheduled task to run reminders every 30 minutes?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmCreate">Yes, create task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e){
+  if(document.getElementById('create_task').checked){
+    if(document.getElementById('confirm_task').value !== '1'){
+      e.preventDefault();
+      var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+      modal.show();
+    }
+  }
+});
+document.getElementById('confirmCreate').addEventListener('click', function(){
+  document.getElementById('confirm_task').value = '1';
+  document.querySelector('form').submit();
+});
+
+document.getElementById('test_oracle_btn').addEventListener('click', function(){
+  var form = document.querySelector('form');
+  var data = new FormData(form);
+  fetch('/api/test_oracle', {method:'POST', body: data})
+    .then(r=>r.json())
+    .then(j=>{
+      var el = document.getElementById('test_oracle_result');
+      el.textContent = j.msg;
+      el.className = j.success ? 'text-success ms-3' : 'text-danger ms-3';
+    }).catch(e=>{
+      var el = document.getElementById('test_oracle_result'); el.textContent = e; el.className='text-danger ms-3';
+    });
+});
+
+document.getElementById('test_smtp_btn').addEventListener('click', function(){
+  var form = document.querySelector('form');
+  var data = new FormData(form);
+  // map SMTP form controls (none in setup) from existing values if present
+  // For now use default SMTPConfig values saved in DB; this will test using provided fields only.
+  fetch('/api/test_smtp', {method:'POST', body: data})
+    .then(r=>r.json())
+    .then(j=>{
+      var el = document.getElementById('test_smtp_result');
+      el.textContent = j.msg;
+      el.className = j.success ? 'text-success ms-3' : 'text-danger ms-3';
+    }).catch(e=>{
+      var el = document.getElementById('test_smtp_result'); el.textContent = e; el.className='text-danger ms-3';
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Send History</h3>
+  <a class="btn btn-secondary" href="{{ url_for('smtp_config') }}">SMTP Settings</a>
+</div>
+<form class="row g-3 mb-4" method="get">
+  <div class="col-md-3">
+    <label class="form-label">Status</label>
+    <select class="form-select" name="status">
+      <option value="all" {% if status_filter=='all' %}selected{% endif %}>All</option>
+      <option value="pending" {% if status_filter=='pending' %}selected{% endif %}>Pending</option>
+      <option value="sent" {% if status_filter=='sent' %}selected{% endif %}>Sent</option>
+      <option value="failed" {% if status_filter=='failed' %}selected{% endif %}>Failed</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">From date</label>
+    <input type="date" class="form-control" name="start_date" value="{{ start_date or '' }}">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">To date</label>
+    <input type="date" class="form-control" name="end_date" value="{{ end_date or '' }}">
+  </div>
+  <div class="col-md-3 d-flex align-items-end">
+    <button class="btn btn-primary w-100">Filter</button>
+  </div>
+</form>
+<div class="table-responsive">
+  <table class="table table-bordered table-hover">
+    <thead class="table-light">
+      <tr>
+        <th>Patient ID</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>Scheduled</th>
+        <th>Site</th>
+        <th>Status</th>
+        <th>Attempts</th>
+        <th>Last Attempt</th>
+        <th>Error</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.patient_id }}</td>
+        <td>{{ log.phone_number }}</td>
+        <td>{{ log.email_address }}</td>
+        <td>{{ log.scheduled_date.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ log.site_code }}</td>
+        <td>{{ log.status }}</td>
+        <td>{{ log.attempt_count }}</td>
+        <td>{{ log.last_attempt_at.strftime('%Y-%m-%d %H:%M') if log.last_attempt_at else '' }}</td>
+        <td>{{ log.error_message or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
