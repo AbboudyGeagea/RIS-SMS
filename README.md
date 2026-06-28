@@ -26,6 +26,9 @@ The web UI provides:
    SECRET_KEY=replace-with-a-secret-key
    ```
 
+3. For full installation instructions, see `INSTALL.md`.
+
+
 3. Run the web UI:
    ```powershell
    python app.py
